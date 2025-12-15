@@ -34,6 +34,25 @@ app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/product-keys', productKeyRoutes);
 app.use('/api/fertilizer-ml', fertilizerMLRoutes);
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'AgriCure Node Backend API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      users: '/api/users',
+      farms: '/api/farms',
+      recommendations: '/api/recommendations',
+      productKeys: '/api/product-keys',
+      fertilizerML: '/api/fertilizer-ml'
+    },
+    documentation: 'Visit /api/health for health check'
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
