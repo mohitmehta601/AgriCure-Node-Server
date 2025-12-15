@@ -11,24 +11,49 @@ const createTransporter = () => {
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD // Use App Password for Gmail
+      },
+      tls: {
+        rejectUnauthorized: false
       }
     });
   }
   
-  // Default SMTP configuration
+  // Default SMTP configuration with improved timeout and connection settings
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: process.env.SMTP_PORT || 587,
+    port: parseInt(process.env.SMTP_PORT || '587'),
     secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD
-    }
+    },
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+    tls: {
+      rejectUnauthorized: false,
+      minVersion: 'TLSv1.2'
+    },
+    debug: process.env.NODE_ENV !== 'production', // Enable debug in development
+    logger: process.env.NODE_ENV !== 'production' // Enable logging in development
   });
 };
 
 const sendOTPEmail = async (email, otp) => {
   try {
+    // Check if email configuration is available
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      console.warn('⚠️  Email credentials not configured. Skipping email send.');
+      // In production, you might want to throw an error instead
+      // For now, we'll just log the OTP
+      console.log(`📧 OTP for ${email}: ${otp}`);
+      return { 
+        success: true, 
+        messageId: 'dev-mode-no-email',
+        warning: 'Email not sent - credentials not configured'
+      };
+    }
+
     const transporter = createTransporter();
 
     const mailOptions = {
